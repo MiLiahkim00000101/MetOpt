@@ -19,6 +19,7 @@ def visualize_func(a, b, eps):
 
     global x_list
     global y_list
+    global am_func
 
     x_steps = np.array(x_list)
     y_steps = np.array(y_list)
@@ -27,7 +28,7 @@ def visualize_func(a, b, eps):
     y = np.array([func(elem) for elem in x])
     fig, ax = plt.subplots()
 
-    ax.scatter(x_steps, y_steps, color=["red", "black"] * int(len(x_steps)/2), marker="x")
+    # ax.scatter(x_steps, y_steps, color=["red", "black"] * am_func, marker="x")
     ax.plot(x_steps, y_steps, marker="none", color="red")
 
     ax.plot(x, y, linewidth=2.0)
@@ -47,49 +48,45 @@ def main():
     a = a_start
     b = b_start
     eps = 1e-3
+    tau = (-1 + m.sqrt(5)) / 2
+    ro = b - a
+    eps_n = tau * ro
     iter = 0
 
-    x1 = 3 / 4 * a + 1 / 4 * b
-    x2 = 1 / 2 * a + 1 / 2 * b
-    x3 = 1 / 4 * a + 3 / 4 * b
+    x1 = a + ro * (1 - tau)
+    x2 = a + ro * tau
+
     f_x1 = func(x1)
     f_x2 = func(x2)
-    f_x3 = func(x3)
 
-    while abs(b - a) >= eps * abs(a + b) / 2 and abs(b - a) >= eps:
+
+    while eps_n > eps:
         
         iter += 1
 
-        min_f = min(f_x1, f_x2, f_x3)
-
-        if min_f == f_x1:
-            a = a
+        if f_x1 <= f_x2:
             b = x2
             x2 = x1
             f_x2 = f_x1
-            
-        elif min_f == f_x2:
+            ro = b - a
+            x1 = a + ro * (1 - tau)
+            f_x1 = func(x1)
+        else:
             a = x1
-            b = x3
-            x2 = x2
-            
-        elif min_f == f_x3:
-            a = x2
-            x2 = x3
-            f_x2 = f_x3
-            b = b
+            x1 = x2
+            f_x1 = f_x2
+            ro = b - a
+            x2 = a + ro * tau
+            f_x2 = func(x2)
         
-        x1 = (a + x2) / 2
-        x3 = (b + x2) / 2
-        f_x1 = func(x1)
-        f_x3 = func(x3)
+        eps_n *= tau
 
-
+    print(eps_n)
     print("Вычислений функции:", am_func)
     print("Количество итераций:", iter)
     print("Точка минимума:", (a + b) / 2)
     print("Значение Минимума:", func((a + b) / 2))
-    print("Априорный подсчет итераций:", m.ceil(m.log2((b_start - a_start) / eps)))
+    print("Априорный подсчет итераций:", m.ceil(m.log(2 * eps/ (b_start - a_start)) / m.log(tau)))
     visualize_func(a_start, b_start, eps)
     
 if __name__ == "__main__":
